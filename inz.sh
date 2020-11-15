@@ -48,7 +48,11 @@ http_access allow all
 http_access allow localnet
 http_access allow localhost
 
-http_port 3128 transparent
+http_port 8888
+http_port 8080
+http_port 8000
+http_port 80
+http_port 3128
 
 visible_hostname smkn2bna.sch.id
 
