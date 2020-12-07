@@ -1,0 +1,95 @@
+#!/bin/bash
+#script by jiraphat yuenying for debian9
+
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root" 
+   exit 1
+fi
+
+#install openvpn
+
+apt-get purge openvpn easy-rsa -y;
+apt-get purge squid -y;
+apt-get purge ufw -y;
+apt-get update
+MYIP=$(wget -qO- ipv4.icanhazip.com);
+MYIP2="s/xxxxxxxxx/$MYIP/g";
+
+apt-get update
+apt-get install bc -y
+apt-get -y install openvpn easy-rsa;
+apt-get -y install python;
+
+wget -O /etc/openvpn/openvpn.tar "https://gakod.com/script/thai/openvpn.tar"
+wget -O /etc/openvpn/default.tar "https://gakod.com/script/thai/default.tar"
+cd /etc/openvpn/
+tar xf openvpn.tar
+tar xf default.tar
+cp sysctl.conf /etc/
+cp before.rules /etc/ufw/
+cp ufw /etc/default/
+rm sysctl.conf
+rm before.rules
+rm ufw
+systemctl restart openvpn
+
+#install squid3
+
+wget https://raw.githubusercontent.com/kakitong/vip9/main/sqx
+chmod +x sqx
+./sqx
+
+cd /etc/openvpn/
+wget -O /etc/openvpn/client.ovpn "https://gakod.com/script/thai/client.ovpn"
+sed -i $MYIP2 /etc/openvpn/client.ovpn;
+cp client.ovpn /root/
+
+#N | apt-get install ufw
+ufw allow ssh
+ufw allow 1194/tcp
+ufw allow 8080/tcp
+ufw allow 3128/tcp
+ufw allow 80/tcp
+yes | sudo ufw enable
+
+# Configure Nginx
+sed -i 's/\/var\/www\/html;/\/home\/vps\/public_html\/;/g' /etc/nginx/sites-enabled/default
+cp /var/www/html/index.nginx-debian.html /home/vps/public_html/index.html
+
+
+# download script
+cd /usr/bin
+wget -O member "https://gakod.com/script/thai/member.sh"
+wget -O menu "https://gakod.com/script/thai/menu.sh"
+wget -O usernew "https://gakod.com/script/thai/usernew.sh"
+wget -O speedtest "https://gakod.com/script/thai/speedtest_cli.py"
+wget -O userd "https://gakod.com/script/thai/deluser.sh"
+wget -O trial "https://gakod.com/script/thai/trial.sh"
+echo "0 0 * * * root /usr/bin/reboot" > /etc/cron.d/reboot
+#echo "* * * * * service dropbear restart" > /etc/cron.d/dropbear
+chmod +x member
+chmod +x menu
+chmod +x usernew
+chmod +x speedtest
+chmod +x userd
+chmod +x trial
+clear
+
+printf '###############################\n'
+printf '# Script by à¸­à¸´à¸„à¸„à¸´à¸§à¸‹à¸±à¸‡ #\n'
+printf '#                             #\n'
+
+printf '#                             #\n'
+printf '#    à¸žà¸´à¸¡à¸žà¹Œ menu à¹€à¸žà¸·à¹ˆà¸­à¹ƒà¸Šà¹‰à¸„à¸³à¸ªà¸±à¹ˆà¸‡à¸•à¹ˆà¸²à¸‡à¹†   #\n'
+printf '###############################\n\n'
+echo -e "à¸”à¸²à¸§à¸™à¹Œà¹‚à¸«à¸¥à¸”à¹„à¸Ÿà¸¥à¹Œ  : /root/client.ovpn\n\n"
+printf '\n\nà¹€à¸žà¸´à¹ˆà¸¡ user à¹‚à¸”à¸¢à¹ƒà¸Šà¹‰à¸„à¸³à¸ªà¸±à¹ˆà¸‡ useradd'
+printf '\n\nà¸•à¸±à¹‰à¸‡à¸£à¸«à¸±à¸ªà¹‚à¸”à¸¢ à¹ƒà¸Šà¹‰à¸„à¸³à¸ªà¸±à¹ˆà¸‡ passwd'
+printf '\n\nà¸„à¸¸à¸“à¸ˆà¸³à¹€à¸›à¹‡à¸™à¸•à¹‰à¸­à¸‡à¸£à¸µà¸ªà¸•à¸²à¸£à¹Œà¸—à¸£à¸°à¸šà¸šà¸«à¸™à¸¶à¹ˆà¸‡à¸£à¸­à¸š (y/n):'
+read a
+if [ $a == 'y' ]
+then
+reboot
+else
+exit
+fi
